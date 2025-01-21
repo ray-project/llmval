@@ -34,6 +34,7 @@ def get_token_throughput_latencies(
     stddev_output_tokens: int,
     additional_sampling_params: Optional[Dict[str, Any]] = None,
     num_concurrent_requests: int = 1,
+    tokenizer: str = "hf-internal-testing/llama-tokenizer",
     max_num_completed_requests: int = 500,
     test_timeout_s=90,
     llm_api="openai",
@@ -60,7 +61,7 @@ def get_token_throughput_latencies(
     """
     random.seed(11111)
 
-    tokenizer = AutoTokenizer.from_pretrained(model)
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer)
     get_token_length = lambda text: len(tokenizer.encode(text))
     
     if not additional_sampling_params:
@@ -289,7 +290,8 @@ def run_token_benchmark(
     stddev_output_tokens: int,
     additional_sampling_params: str,
     results_dir: str,
-    user_metadata: Dict[str, Any]
+    user_metadata: Dict[str, Any],
+    tokenizer: str
 ):
     """
     Args:
@@ -461,6 +463,14 @@ args.add_argument(
         "name=foo,bar=1. These will be added to the metadata field of the results. "
     ),
 )
+args.add_argument(
+    "--tokenizer",
+    type=str,
+    default="hf-internal-testing/llama-tokenizer",
+    help=(
+        "Tokenizer to use for counting tokens"
+    ),
+)
 
 if __name__ == "__main__":
     env_vars = dict(os.environ)
@@ -486,5 +496,6 @@ if __name__ == "__main__":
         num_concurrent_requests=args.num_concurrent_requests,
         additional_sampling_params=args.additional_sampling_params,
         results_dir=args.results_dir,
-        user_metadata=user_metadata
+        user_metadata=user_metadata,
+        tokenizer=args.tokenizer
     )
